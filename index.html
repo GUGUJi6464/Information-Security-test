@@ -1,0 +1,104 @@
+
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>資安宣導（20 分鐘） - 互動測驗</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Noto Sans TC", "Microsoft JhengHei", sans-serif; padding: 20px; background: #f7f7f8; }
+  .card { max-width: 820px; margin: 12px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+  h1 { margin-top: 0; }
+  .q { margin: 16px 0; }
+  .options button { display:block; margin:8px 0; padding:10px; border-radius:6px; border:1px solid #ddd; background:#fafafa; cursor:pointer; text-align:left; }
+  .options button.selected { border-color:#2d8cff; background:#eef6ff; }
+  .result { padding: 12px; margin-top: 12px; border-radius:6px; background:#f0f8ff; }
+  .hidden { display:none; }
+  footer { text-align:center; margin-top:18px; color:#666; font-size:13px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>小測驗</h1>
+  <p>請作答 5 題單選題。完成後按「交卷並顯示成績」。</p>
+  <div id="quiz"></div>
+  <div style="text-align:right; margin-top:12px;">
+    <button id="submitBtn">交卷並顯示成績</button>
+  </div>
+  <div id="result" class="result hidden"></div>
+</div>
+<footer>由內部資安團隊提供教材 — 2025-10</footer>
+
+<script>
+const questions = [
+  {q:"你在公司電腦發現一個「需要安裝更新」的彈窗，來源不明，你應該？", 
+   opts:["立刻點「更新」","忽略它","通知 IT 部門確認"], ans:2},
+  {q:"你插入一支陌生 USB 後，電腦自動彈出「正在執行 setup.exe」，你應該？",
+   opts:["直接關閉並拔除 USB，通知 IT","看起來沒事就放著","嘗試重開機解決"], ans:0},
+  {q:"公司筆電發燙異常、風扇暴轉、出現奇怪網路連線時應該？",
+   opts:["自己掃毒看看","拍照記錄後立刻通報 IT","等下次重開機再說"], ans:1},
+  {q:"哪一個是正確的資安觀念？",
+   opts:["為了方便可以共用帳號","下載破解軟體只要不在公司用就沒差","密碼不外借、不重複、定期更換"], ans:2},
+  {q:"如果發現同事安裝了未經授權的軟體，正確作法是？",
+   opts:["假裝沒看到","匿名向主管或 IT 通報","幫他用看看功能"], ans:1}
+];
+
+function renderQuiz(){
+  const container = document.getElementById('quiz');
+  container.innerHTML = '';
+  questions.forEach((qq, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'q';
+    const h = document.createElement('h3');
+    h.textContent = '第 ' + (idx+1) + ' 題： ' + qq.q;
+    div.appendChild(h);
+    const opts = document.createElement('div');
+    opts.className = 'options';
+    qq.opts.forEach((o, i)=>{
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.innerHTML = '<strong>' + String.fromCharCode(65+i) + '.</strong> ' + o;
+      btn.onclick = function(){
+        Array.from(opts.children).forEach(function(b){ b.classList.remove('selected'); });
+        btn.classList.add('selected');
+        btn.dataset.selected = i;
+      };
+      opts.appendChild(btn);
+    });
+    div.appendChild(opts);
+    container.appendChild(div);
+  });
+}
+
+document.getElementById('submitBtn').addEventListener('click', function(){
+  const answers = [];
+  const qs = document.querySelectorAll('.q');
+  let score = 0;
+  qs.forEach(function(q, idx){
+    const sel = q.querySelector('.options button.selected');
+    const selectedIndex = sel ? Array.from(q.querySelectorAll('button')).indexOf(sel) : -1;
+    answers.push(selectedIndex);
+    if(selectedIndex === questions[idx].ans) score += 1;
+  });
+  const result = document.getElementById('result');
+  result.classList.remove('hidden');
+  result.innerHTML = '<h3>得分：' + score + ' / ' + questions.length + '</h3>';
+  const ul = document.createElement('ul');
+  questions.forEach(function(qq, i){
+    const li = document.createElement('li');
+    const user = answers[i] >= 0 ? String.fromCharCode(65+answers[i]) + '. ' + qq.opts[answers[i]] : '<em>未作答</em>';
+    const correct = String.fromCharCode(65+qq.ans) + '. ' + qq.opts[qq.ans];
+    li.innerHTML = '<strong>第 ' + (i+1) + ' 題：</strong> 你的答案：' + user + '<br> 正確答案：' + correct;
+    ul.appendChild(li);
+  });
+  result.appendChild(ul);
+  const btn = document.createElement('button');
+  btn.textContent = '列印成績摘要';
+  btn.onclick = function(){ window.print(); };
+  result.appendChild(btn);
+});
+
+renderQuiz();
+</script>
+</body>
+</html>
